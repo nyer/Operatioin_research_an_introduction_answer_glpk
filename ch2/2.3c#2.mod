@@ -3,28 +3,25 @@ set years;
 
 param cash_flow{years, projects};
 param interest_rate;
-param init_fund;
+param init_amount;
 
 var p{projects}, >= 0;
 /* bank invest amount */
 var s{years}, >= 0;
-/* fund amount at end of year */
-var fund{0..card(years)}, >= 0;
 
-maximize z: fund[card(years)-1] + sum{project in projects} p[project] * cash_flow[card(years), project];
+maximize z: s[card(years)];
 
 subject to
-init_fund_limit: fund[0] = init_fund;
-fund_limit{year in years} : fund[year] = (sum{project in projects} p[project] * cash_flow[year, project] + fund[year-1]) * (1 + interest_rate);
-fund_limit2{year in years}: sum{project in projects} p[project] * cash_flow[year, project] +  fund[year-1] = s[year];
+first_bank_invest_limit: s[1] = init_amount +  sum{project in projects} p[project] * cash_flow[1, project];
+bank_invest_limit{year in years : year > 1} : s[year] = sum{project in projects} p[project] * cash_flow[year, project] + s[year-1] * (1 + interest_rate);
 
 
 solve;
-printf '%.2f at start of year 5', z;
+printf '%.2f at start of year 5\n', z;
 
 data;
 param interest_rate := 0.065;
-param init_fund := 10000;
+param init_amount := 10000;
 set years := 1 2 3 4 5;
 set projects := 1 2 3 4;
 param cash_flow
